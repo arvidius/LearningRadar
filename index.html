@@ -3,25 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar Quiz</title>
+    <title>Radar Range Equation</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --panel-bg: #1e293b;
-            --accent: #38bdf8;
-            --accent-dim: #0ea5e9;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --success: #4ade80;
-            --error: #f87171;
+            --blue-dark: #003264;
+            --blue-medium: #004b96;
+            --blue-standard: #0073eb;
+            --blue-light: #469cf0;
+            --grey-dark: #404040;
+            --grey-medium: #808080;
+            --grey-light: #bfbfbf;
+            --white: #ffffff;
+            --success: #1e8e3e;
+            --error: #c62828;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--white);
+            color: var(--grey-dark);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -30,18 +34,20 @@
 
         header {
             text-align: center;
-            margin: 20px 0;
+            margin: 32px 0 24px;
         }
 
         header h1 {
             margin: 0;
-            font-size: 1.8rem;
-            color: var(--accent);
+            font-size: 1.9rem;
+            font-weight: 600;
+            color: var(--blue-dark);
+            letter-spacing: 0.3px;
         }
 
         header p {
-            margin: 5px 0 0;
-            color: var(--text-muted);
+            margin: 6px 0 0;
+            color: var(--grey-medium);
             font-size: 0.95rem;
         }
 
@@ -51,18 +57,18 @@
             width: 90%;
             max-width: 800px;
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
         #sim-container {
             position: relative;
             width: 100%;
             height: 350px;
-            background: radial-gradient(ellipse at 50% 100%, #0c1a2e 0%, #020617 70%);
-            border: 2px solid #334155;
-            border-radius: 12px;
+            background: var(--white);
+            border: 1px solid var(--grey-light);
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 16px rgba(0, 50, 100, 0.08);
         }
 
         canvas {
@@ -74,27 +80,28 @@
 
         .canvas-instruction {
             position: absolute;
-            bottom: 12px;
+            bottom: 14px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.85);
-            padding: 6px 16px;
+            background: var(--white);
+            padding: 7px 18px;
             border-radius: 20px;
-            border: 1px solid #475569;
+            border: 1px solid var(--grey-light);
             font-size: 0.8rem;
             pointer-events: none;
-            letter-spacing: 0.3px;
-            color: var(--text-muted);
+            letter-spacing: 0.2px;
+            color: var(--grey-dark);
             white-space: nowrap;
             transition: opacity 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 50, 100, 0.08);
         }
 
         .panel {
-            background-color: var(--panel-bg);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            background-color: var(--white);
+            border: 1px solid var(--grey-light);
+            border-radius: 10px;
+            padding: 22px;
+            box-shadow: 0 4px 16px rgba(0, 50, 100, 0.06);
         }
 
         .stats-grid {
@@ -105,44 +112,49 @@
         }
 
         .stat-card {
-            background: #0f172a;
+            background: var(--white);
             padding: 12px 15px;
             border-radius: 8px;
-            border-left: 4px solid var(--accent);
+            border: 1px solid var(--grey-light);
+            border-left: 4px solid var(--blue-standard);
         }
 
         .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            font-size: 0.78rem;
+            color: var(--grey-medium);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .stat-value {
-            font-size: 1.1rem;
-            font-weight: bold;
+            font-size: 1.15rem;
+            font-weight: 600;
             margin-top: 4px;
+            color: var(--blue-dark);
         }
 
         .formula-box {
-            background: #0f172a;
-            padding: 15px;
+            background: var(--white);
+            padding: 16px;
             border-radius: 8px;
             margin-bottom: 20px;
             text-align: center;
-            border: 1px dashed #475569;
+            border: 1px dashed var(--grey-light);
         }
 
         .formula-box h3 {
             margin: 0 0 8px 0;
-            font-size: 0.95rem;
-            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--blue-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
         .formula {
-            font-family: monospace;
+            font-family: 'Consolas', monospace;
             font-size: 1.1rem;
-            color: #e2e8f0;
+            color: var(--grey-dark);
         }
 
         .quiz-section {
@@ -154,18 +166,20 @@
         .input-group {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         input[type="number"] {
             flex: 1;
-            background: #0f172a;
-            border: 1px solid #475569;
+            min-width: 180px;
+            background: var(--white);
+            border: 1px solid var(--grey-light);
             border-radius: 8px;
-            padding: 12px;
-            color: white;
+            padding: 12px 14px;
+            color: var(--grey-dark);
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
             -moz-appearance: textfield;
         }
 
@@ -176,31 +190,38 @@
         }
 
         input[type="number"]:focus {
-            border-color: var(--accent);
+            border-color: var(--blue-standard);
+            box-shadow: 0 0 0 3px rgba(0, 115, 235, 0.12);
+        }
+
+        input[type="number"]:disabled {
+            background: #fafafa;
+            color: var(--grey-medium);
         }
 
         button {
-            background-color: var(--accent);
-            color: #0f172a;
+            background-color: var(--blue-dark);
+            color: var(--white);
             border: none;
-            padding: 12px 24px;
-            font-weight: bold;
+            padding: 12px 26px;
+            font-weight: 600;
+            font-size: 0.95rem;
             border-radius: 8px;
             cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
+            transition: background-color 0.2s, transform 0.1s;
         }
 
-        button:hover {
-            opacity: 0.9;
+        button:hover:not(:disabled) {
+            background-color: var(--blue-medium);
         }
 
-        button:active {
+        button:active:not(:disabled) {
             transform: scale(0.98);
         }
 
         button:disabled {
-            background-color: #475569;
-            color: #94a3b8;
+            background-color: var(--grey-light);
+            color: var(--white);
             cursor: not-allowed;
         }
 
@@ -217,14 +238,15 @@
 <body>
 
     <header>
-        <h1>Radar Quiz</h1>
+        <h1>Radar Range Equation</h1>
+        <p>Transmit a pulse and calculate the distance to the target</p>
     </header>
 
     <div class="container">
         <!-- Simulation Canvas -->
         <div id="sim-container">
             <canvas id="radarCanvas"></canvas>
-            <div class="canvas-instruction" id="instruction-text">Click the airplane to transmit a radar pulse!</div>
+            <div class="canvas-instruction" id="instruction-text">Click the target to transmit a radar pulse!</div>
         </div>
 
         <!-- Dashboard & Quiz Panel -->
@@ -242,14 +264,14 @@
 
             <div class="formula-box">
                 <h3>Radar Range Equation (Distance to Target)</h3>
-                <div class="formula">Distance = (Speed of Light × Round Trip Time) / 2</div>
+                <div class="formula">Distance = (Speed of Light &times; Round Trip Time) / 2</div>
             </div>
 
             <div class="quiz-section">
                 <div id="feedback"></div>
                 <div class="input-group">
                     <input type="number" id="user-range" placeholder="Enter calculated range in km..." disabled>
-                    <button id="submit-btn" onclick="checkAnswer()" disabled>Submit Answer</button>
+                    <button id="submit-btn" onclick="checkAnswer()" disabled>Submit</button>
                     <button id="next-btn" onclick="nextRound()" style="display:none;">Next Target</button>
                 </div>
             </div>
@@ -270,16 +292,34 @@
         let width, height;
         let radarPos = { x: 80, y: 0 };
         let planePos = { x: 0, y: 0 };
-        let planeAngle = -Math.PI / 6;
+
+        // Native aspect ratios of the provided artwork - used only for scaling,
+        // never for rotation. Images are always drawn upright / at their
+        // original angle exactly as provided.
+        const RADAR_NATIVE_W = 125;
+        const RADAR_NATIVE_H = 248;
+        const AIRCRAFT_NATIVE_W = 499;
+        const AIRCRAFT_NATIVE_H = 226;
 
         const C = 3e8; // Speed of light in m/s
         let actualRangeMeters = 0;
         let roundTripTimeSec = 0;
 
+        // Adjust this to control how fast the pulse animation plays.
+        // Higher = faster animation, lower = slower animation.
+        // This is the amount pulseProgress advances per animation frame
+        // (pulseProgress runs from 0 to 2: 0-1 outbound, 1-2 return).
+        const PULSE_SPEED = 0.002;
+
         let state = 'IDLE';
         let pulseProgress = 0;
-        let dishAngle = 0;
-        let bgStars = [];
+
+        // Load external images
+        const radarImg = new Image();
+        radarImg.src = 'graphics/icon-radar.png';
+
+        const aircraftImg = new Image();
+        aircraftImg.src = 'graphics/icon-aircraft.png';
 
         function resizeCanvas() {
             width = canvas.parentElement.clientWidth;
@@ -287,18 +327,8 @@
             canvas.width = width;
             canvas.height = height;
 
-            radarPos = { x: 65, y: height - 55 };
-
-            if (bgStars.length === 0) {
-                for (let i = 0; i < 45; i++) {
-                    bgStars.push({
-                        x: Math.random() * width,
-                        y: Math.random() * (height * 0.7),
-                        r: Math.random() * 1.3 + 0.3,
-                        tw: Math.random() * Math.PI * 2
-                    });
-                }
-            }
+            // Radar station stands flat on the ground line.
+            radarPos = { x: 70, y: height - 50 };
 
             if (state === 'IDLE') {
                 resetPlanePosition();
@@ -314,16 +344,19 @@
             actualRangeMeters = (C * roundTripTimeSec) / 2;
             const distKm = actualRangeMeters / 1000;
 
-            // Ensure the airplane stays well within the canvas bounds by capping pxDist based on current width
-            const maxPxDist = Math.min(width - 120, 550);
-            const pxDist = Math.min(Math.max((distKm / 350) * maxPxDist, 100), maxPxDist);
+            const maxPxDist = Math.min(width - 140, 560);
+            const pxDist = Math.min(Math.max((distKm / 350) * maxPxDist, 120), maxPxDist);
 
-            const angle = -Math.PI / 6;
+            // Aircraft always flies along the same shallow ascending path,
+            // matching the fixed angle baked into the artwork itself.
+            const angle = -Math.PI / 9;
+            const flightBaseY = height * 0.42;
             planePos = {
-                x: radarPos.x + Math.cos(angle) * pxDist,
-                y: radarPos.y + Math.sin(angle) * pxDist
+                x: radarPos.x + 90 + Math.cos(angle) * pxDist * 0.75,
+                y: flightBaseY - Math.sin(-angle) * (pxDist * 0.12)
             };
-            planeAngle = angle;
+            // Keep the plane within a comfortable vertical band.
+            planePos.y = Math.min(Math.max(planePos.y, height * 0.18), height * 0.55);
         }
 
         window.addEventListener('resize', resizeCanvas);
@@ -354,10 +387,8 @@
         }
 
         function updateAnimation() {
-            dishAngle += 0.01;
-
             if (state === 'TRANSMITTING' || state === 'RETURNING') {
-                pulseProgress += 0.012;
+                pulseProgress += PULSE_SPEED;
 
                 if (pulseProgress >= 2.0) {
                     pulseProgress = 2.0;
@@ -374,184 +405,84 @@
             }
         }
 
-        function drawStars() {
-            bgStars.forEach(s => {
-                const alpha = 0.3 + 0.4 * Math.abs(Math.sin(s.tw + Date.now() / 900));
-                ctx.fillStyle = `rgba(148, 163, 184, ${alpha.toFixed(2)})`;
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                ctx.fill();
-            });
-        }
-
-        function drawRadarStation() {
-            const x = radarPos.x;
-            const y = radarPos.y;
-
-            // Base tower
-            ctx.fillStyle = '#475569';
-            ctx.fillRect(x - 6, y - 22, 12, 22);
-
-            // Small hut at base
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(x - 20, y - 4, 40, 4);
-            ctx.strokeStyle = '#1e293b';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x - 20, y - 4, 40, 4);
-
-            // Rotating dish assembly, pivoted at top of tower
-            const pivotY = y - 22;
-            ctx.save();
-            ctx.translate(x, pivotY);
-
-            // subtle back-and-forth sweep instead of full spin
-            const sweep = Math.sin(dishAngle) * 0.5; // radians
-            ctx.rotate(sweep);
-
-            // dish support strut
-            ctx.strokeStyle = '#64748b';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(0, -16);
-            ctx.stroke();
-
-            // dish (parabolic arc)
-            ctx.beginPath();
-            ctx.arc(0, -16, 16, Math.PI * 0.15, Math.PI * 0.85, false);
-            ctx.lineWidth = 5;
-            ctx.strokeStyle = var_accent();
-            ctx.lineCap = 'round';
-            ctx.stroke();
-
-            // dish feed horn
-            ctx.beginPath();
-            ctx.arc(0, -16, 3, 0, Math.PI * 2);
-            ctx.fillStyle = '#f8fafc';
-            ctx.fill();
-
-            ctx.restore();
-
-            // small blinking light on tower
-            const blink = 0.5 + 0.5 * Math.sin(Date.now() / 300);
-            ctx.beginPath();
-            ctx.arc(x, y - 26, 2.2, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(248, 113, 113, ${blink.toFixed(2)})`;
-            ctx.fill();
-        }
-
-        function var_accent() {
-            return '#38bdf8';
-        }
-
-        function drawAirplane() {
-            const x = planePos.x;
-            const y = planePos.y;
-
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(planeAngle);
-
-            // subtle glow
-            ctx.shadowColor = 'rgba(56, 189, 248, 0.5)';
-            ctx.shadowBlur = 8;
-
-            // fuselage
-            ctx.fillStyle = '#e2e8f0';
-            ctx.beginPath();
-            ctx.moveTo(-16, 0);
-            ctx.lineTo(14, 0);
-            ctx.lineTo(18, 1.5);
-            ctx.lineTo(14, 3);
-            ctx.lineTo(-16, 3);
-            ctx.closePath();
-            ctx.fill();
-
-            // main wings
-            ctx.fillStyle = '#cbd5e1';
-            ctx.beginPath();
-            ctx.moveTo(-2, -1);
-            ctx.lineTo(-16, -14);
-            ctx.lineTo(-10, -14);
-            ctx.lineTo(4, -1);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(-2, 4);
-            ctx.lineTo(-16, 17);
-            ctx.lineTo(-10, 17);
-            ctx.lineTo(4, 4);
-            ctx.closePath();
-            ctx.fill();
-
-            // tail fin
-            ctx.fillStyle = '#94a3b8';
-            ctx.beginPath();
-            ctx.moveTo(-16, 1.5);
-            ctx.lineTo(-24, -7);
-            ctx.lineTo(-19, 1.5);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.shadowBlur = 0;
-
-            // cockpit dot
-            ctx.beginPath();
-            ctx.arc(10, 1.5, 1.6, 0, Math.PI * 2);
-            ctx.fillStyle = '#38bdf8';
-            ctx.fill();
-
-            ctx.restore();
-        }
-
         function drawScene() {
             ctx.clearRect(0, 0, width, height);
-            drawStars();
 
-            // Ground Line
-            ctx.strokeStyle = '#334155';
+            // Sky background - subtle light blue gradient
+            const sky = ctx.createLinearGradient(0, 0, 0, height);
+            sky.addColorStop(0, '#f5faff');
+            sky.addColorStop(1, '#ffffff');
+            ctx.fillStyle = sky;
+            ctx.fillRect(0, 0, width, height);
+
+            // Ground
+            ctx.fillStyle = '#f0f2f4';
+            ctx.fillRect(0, height - 50, width, 50);
+            ctx.strokeStyle = 'rgb(192, 192, 192)';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(0, height - 50);
             ctx.lineTo(width, height - 50);
             ctx.stroke();
 
-            drawRadarStation();
-            drawAirplane();
+            // Radar Beam / Dotted Expanding Pulse - drawn first so it sits
+            // behind the radar and aircraft artwork.
+            const radarHeight = 100;
+            const radarWidth = radarHeight * (RADAR_NATIVE_W / RADAR_NATIVE_H);
+            const aircraftWidth = 90;
+            const aircraftHeight = aircraftWidth * (AIRCRAFT_NATIVE_H / AIRCRAFT_NATIVE_W);
 
-            // Radar Beam / Dotted Expanding Pulse
             if (state === 'TRANSMITTING' || state === 'RETURNING' || state === 'ANSWERING') {
-                let currentBeamEnd = { x: 0, y: 0 };
-                const pivotY = radarPos.y - 38;
+                const pivotY = radarPos.y - radarHeight * 0.72;
+                const pivotX = radarPos.x + radarWidth * 0.18;
 
-                if (pulseProgress <= 1.0) {
-                    currentBeamEnd.x = radarPos.x + (planePos.x - radarPos.x) * pulseProgress;
-                    currentBeamEnd.y = pivotY + (planePos.y - pivotY) * pulseProgress;
-                } else {
-                    let returnProgress = pulseProgress - 1.0;
-                    currentBeamEnd.x = planePos.x + (radarPos.x - planePos.x) * returnProgress;
-                    currentBeamEnd.y = planePos.y + (pivotY - planePos.y) * returnProgress;
-                }
-
-                ctx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
+                ctx.strokeStyle = 'rgba(0, 115, 235, 0.85)';
                 ctx.lineWidth = 3;
                 ctx.setLineDash([6, 6]);
-                ctx.beginPath();
-                ctx.moveTo(radarPos.x, pivotY);
-                ctx.lineTo(currentBeamEnd.x, currentBeamEnd.y);
-                ctx.stroke();
-                ctx.setLineDash([]);
 
-                // pulse dot with glow
-                ctx.beginPath();
-                ctx.arc(currentBeamEnd.x, currentBeamEnd.y, 6, 0, 2 * Math.PI);
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = '#38bdf8';
-                ctx.shadowBlur = 12;
-                ctx.fill();
-                ctx.shadowBlur = 0;
+                if (pulseProgress < 1.0) {
+                    // Outbound: line grows from the radar out to the aircraft.
+                    const tipX = pivotX + (planePos.x - pivotX) * pulseProgress;
+                    const tipY = pivotY + (planePos.y - pivotY) * pulseProgress;
+                    ctx.beginPath();
+                    ctx.moveTo(pivotX, pivotY);
+                    ctx.lineTo(tipX, tipY);
+                    ctx.stroke();
+                } else if (pulseProgress > 1.0 && pulseProgress < 2.0) {
+                    // Inbound: line grows from the aircraft back to the radar,
+                    // i.e. it travels from the plane toward the radar.
+                    const returnProgress = pulseProgress - 1.0;
+                    const tipX = planePos.x + (pivotX - planePos.x) * returnProgress;
+                    const tipY = planePos.y + (pivotY - planePos.y) * returnProgress;
+                    ctx.beginPath();
+                    ctx.moveTo(planePos.x, planePos.y);
+                    ctx.lineTo(tipX, tipY);
+                    ctx.stroke();
+                }
+                // At exactly pulseProgress === 1.0 the line briefly disappears
+                // before the return trip begins, and once it reaches 2.0 the
+                // return line disappears as well.
+
+                ctx.setLineDash([]);
             }
+
+            // Draw Radar Image - always upright, base flat on the ground line, no rotation.
+            ctx.drawImage(
+                radarImg,
+                radarPos.x - radarWidth / 2,
+                radarPos.y - radarHeight,
+                radarWidth,
+                radarHeight
+            );
+
+            // Draw Aircraft Image - always drawn at its original fixed angle, no rotation.
+            ctx.drawImage(
+                aircraftImg,
+                planePos.x - aircraftWidth / 2,
+                planePos.y - aircraftHeight / 2,
+                aircraftWidth,
+                aircraftHeight
+            );
         }
 
         function loop() {
@@ -574,7 +505,7 @@
             const tolerance = 1;
 
             if (Math.abs(userVal - correctRangeKm) <= tolerance) {
-                feedbackEl.textContent = `Correct! The range to the airplane is exactly ${correctRangeKm} km.`;
+                feedbackEl.textContent = `Correct! The range to the target is exactly ${correctRangeKm} km.`;
                 feedbackEl.className = 'success';
                 submitBtn.style.display = 'none';
                 nextBtn.style.display = 'inline-block';
@@ -598,7 +529,7 @@
             submitBtn.style.display = 'inline-block';
             nextBtn.style.display = 'none';
             feedbackEl.textContent = '';
-            instructionEl.textContent = "Click the airplane to transmit a new radar pulse!";
+            instructionEl.textContent = "Click the target to transmit a new radar pulse!";
             instructionEl.style.opacity = '1';
             resetPlanePosition();
         }
