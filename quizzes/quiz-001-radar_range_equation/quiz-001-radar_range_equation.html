@@ -1,0 +1,309 @@
+<div class="quiz-container wide">
+  <h1>Radar Range Equation</h1>
+  <p>Transmit a pulse and calculate the distance to the target.</p>
+
+  <!-- Simulation Canvas -->
+  <div class="sim-container">
+    <canvas class="radar-canvas"></canvas>
+    <div class="canvas-instruction">Click the target to transmit a radar pulse!</div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Round Trip Time</div>
+      <div class="stat-value val-time">-- s</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Speed of Light</div>
+      <div class="stat-value">300,000 km/s</div>
+    </div>
+  </div>
+
+  <div class="formula-box">
+    <h3>Radar Range Equation (Distance to Target)</h3>
+    <div class="formula">Distance = (Speed of Light &times; Round Trip Time) / 2</div>
+  </div>
+
+  <div class="quiz-content-area">
+    <p class="quiz-feedback"></p>
+    <div class="input-group">
+      <input type="number" class="user-range" placeholder="Enter calculated range in km..." disabled>
+      <button class="btn submit-btn" disabled>Submit</button>
+      <button class="btn next-btn" hidden>Next Target</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.initQuiz01 = function (root) {
+    // root is the container this fragment was inserted into (passed by
+    // app.js) — every lookup is scoped to it, so this quiz's markup can
+    // safely reuse class names other quizzes also use.
+    const canvas = root.querySelector('.radar-canvas');
+    const ctx = canvas.getContext('2d');
+
+    const timeDisplay = root.querySelector('.val-time');
+    const userRangeInput = root.querySelector('.user-range');
+    const submitBtn = root.querySelector('.submit-btn');
+    const nextBtn = root.querySelector('.next-btn');
+    const feedbackEl = root.querySelector('.quiz-feedback');
+    const instructionEl = root.querySelector('.canvas-instruction');
+
+    let width, height;
+    let radarPos = { x: 80, y: 0 };
+    let planePos = { x: 0, y: 0 };
+
+    // Native aspect ratios of the provided artwork - used only for scaling,
+    // never for rotation. Images are always drawn upright / at their
+    // original angle exactly as provided.
+    const RADAR_NATIVE_W = 125;
+    const RADAR_NATIVE_H = 248;
+    const AIRCRAFT_NATIVE_W = 499;
+    const AIRCRAFT_NATIVE_H = 226;
+
+    const C = 3e8; // Speed of light in m/s
+    let actualRangeMeters = 0;
+    let roundTripTimeSec = 0;
+
+    // Adjust this to control how fast the pulse animation plays.
+    // Higher = faster animation, lower = slower animation.
+    // This is the amount pulseProgress advances per animation frame
+    // (pulseProgress runs from 0 to 2: 0-1 outbound, 1-2 return).
+    const PULSE_SPEED = 0.002;
+
+    let state = 'IDLE';
+    let pulseProgress = 0;
+    let animationFrameId = null;
+
+    // Load external images
+    const radarImg = new Image();
+    radarImg.src = 'graphics/icon-radar.png';
+
+    const aircraftImg = new Image();
+    aircraftImg.src = 'graphics/icon-aircraft.png';
+
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      width = container.clientWidth;
+      height = container.clientHeight;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+
+      // Radar station stands flat on the ground line.
+      radarPos = { x: Math.max(50, width * 0.12), y: height - 50 };
+
+      if (state === 'IDLE') {
+        resetPlanePosition();
+      }
+    }
+
+    function resetPlanePosition() {
+      const possibleTimesMs = [1.0, 1.2, 1.5, 1.8, 2.0, 2.2, 2.5];
+      const chosenTimeMs = possibleTimesMs[Math.floor(Math.random() * possibleTimesMs.length)];
+
+      roundTripTimeSec = chosenTimeMs / 1000;
+
+      actualRangeMeters = (C * roundTripTimeSec) / 2;
+      const distKm = actualRangeMeters / 1000;
+
+      const maxPxDist = Math.min(width - 140, 560);
+      const pxDist = Math.min(Math.max((distKm / 350) * maxPxDist, 120), maxPxDist);
+
+      // Aircraft always flies along the same shallow ascending path,
+      // matching the fixed angle baked into the artwork itself.
+      const angle = -Math.PI / 9;
+      const flightBaseY = height * 0.42;
+      planePos = {
+        x: radarPos.x + 90 + Math.cos(angle) * pxDist * 0.75,
+        y: flightBaseY - Math.sin(-angle) * (pxDist * 0.12)
+      };
+      // Keep the plane within a comfortable vertical band.
+      planePos.y = Math.min(Math.max(planePos.y, height * 0.18), height * 0.55);
+      // Ensure the plane doesn't overflow right on small screens
+      if (planePos.x > width - 60) {
+        planePos.x = width - 60;
+      }
+    }
+
+    function handleResize() {
+      resizeCanvas();
+    }
+    window.addEventListener('resize', handleResize);
+    resizeCanvas();
+
+    canvas.addEventListener('click', (event) => {
+      if (state !== 'IDLE') return;
+
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+      const distToPlane = Math.hypot(mouseX - planePos.x, mouseY - planePos.y);
+
+      if (distToPlane < 60 || mouseY < height / 2) {
+        startPulse();
+      }
+    });
+
+    function startPulse() {
+      state = 'TRANSMITTING';
+      pulseProgress = 0;
+      instructionEl.style.opacity = '0';
+      userRangeInput.disabled = true;
+      submitBtn.disabled = true;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'quiz-feedback';
+    }
+
+    function updateAnimation() {
+      if (state === 'TRANSMITTING' || state === 'RETURNING') {
+        pulseProgress += PULSE_SPEED;
+
+        if (pulseProgress >= 2.0) {
+          pulseProgress = 2.0;
+          state = 'ANSWERING';
+
+          timeDisplay.textContent = `${roundTripTimeSec.toFixed(4)} s`;
+
+          userRangeInput.disabled = false;
+          submitBtn.disabled = false;
+          userRangeInput.focus();
+          instructionEl.textContent = 'Pulse returned! Calculate and enter the range below.';
+          instructionEl.style.opacity = '1';
+        }
+      }
+    }
+
+    function drawScene() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Sky background - subtle light gradient matching site's flat canvas color.
+      const sky = ctx.createLinearGradient(0, 0, 0, height);
+      sky.addColorStop(0, '#f7f7f7');
+      sky.addColorStop(1, '#ffffff');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, width, height);
+
+      // Ground
+      ctx.fillStyle = '#f0f0f0';
+      ctx.fillRect(0, height - 50, width, 50);
+      ctx.strokeStyle = '#c0c0c0';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, height - 50);
+      ctx.lineTo(width, height - 50);
+      ctx.stroke();
+
+      // Radar Beam / Dotted Expanding Pulse - drawn first so it sits
+      // behind the radar and aircraft artwork.
+      const radarHeight = 100;
+      const radarWidth = radarHeight * (RADAR_NATIVE_W / RADAR_NATIVE_H);
+      const aircraftWidth = Math.min(90, width * 0.2);
+      const aircraftHeight = aircraftWidth * (AIRCRAFT_NATIVE_H / AIRCRAFT_NATIVE_W);
+
+      if (state === 'TRANSMITTING' || state === 'RETURNING' || state === 'ANSWERING') {
+        const pivotY = radarPos.y - radarHeight * 0.72;
+        const pivotX = radarPos.x + radarWidth * 0.18;
+
+        ctx.strokeStyle = '#00a2be';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 6]);
+
+        if (pulseProgress < 1.0) {
+          // Outbound: line grows from the radar out to the aircraft.
+          const tipX = pivotX + (planePos.x - pivotX) * pulseProgress;
+          const tipY = pivotY + (planePos.y - pivotY) * pulseProgress;
+          ctx.beginPath();
+          ctx.moveTo(pivotX, pivotY);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+        } else if (pulseProgress > 1.0 && pulseProgress < 2.0) {
+          // Inbound: line grows from the aircraft back to the radar,
+          // i.e. it travels from the plane toward the radar.
+          const returnProgress = pulseProgress - 1.0;
+          const tipX = planePos.x + (pivotX - planePos.x) * returnProgress;
+          const tipY = planePos.y + (pivotY - planePos.y) * returnProgress;
+          ctx.beginPath();
+          ctx.moveTo(planePos.x, planePos.y);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+        }
+        // At exactly pulseProgress === 1.0 the line briefly disappears
+        // before the return trip begins, and once it reaches 2.0 the
+        // return line disappears as well.
+
+        ctx.setLineDash([]);
+      }
+
+      // Draw Radar Image - always upright, base flat on the ground line, no rotation.
+      ctx.drawImage(
+        radarImg,
+        radarPos.x - radarWidth / 2,
+        radarPos.y - radarHeight,
+        radarWidth,
+        radarHeight
+      );
+
+      // Draw Aircraft Image - always drawn at its original fixed angle, no rotation.
+      ctx.drawImage(
+        aircraftImg,
+        planePos.x - aircraftWidth / 2,
+        planePos.y - aircraftHeight / 2,
+        aircraftWidth,
+        aircraftHeight
+      );
+    }
+
+    function loop() {
+      updateAnimation();
+      drawScene();
+      animationFrameId = requestAnimationFrame(loop);
+    }
+
+    loop();
+
+    function checkAnswer() {
+      const userVal = parseFloat(userRangeInput.value);
+      if (isNaN(userVal)) {
+        feedbackEl.textContent = 'Please enter a valid number.';
+        feedbackEl.className = 'quiz-feedback error';
+        return;
+      }
+
+      const correctRangeKm = Math.round(actualRangeMeters / 1000);
+      const tolerance = 1;
+
+      if (Math.abs(userVal - correctRangeKm) <= tolerance) {
+        feedbackEl.textContent = `Correct! The range to the target is exactly ${correctRangeKm} km.`;
+        feedbackEl.className = 'quiz-feedback success';
+      } else {
+        feedbackEl.textContent = `Incorrect. The correct answer was ${correctRangeKm} km.`;
+        feedbackEl.className = 'quiz-feedback error';
+      }
+      submitBtn.style.display = 'none';
+      nextBtn.hidden = false;
+      userRangeInput.disabled = true;
+    }
+
+    function nextRound() {
+      state = 'IDLE';
+      pulseProgress = 0;
+      timeDisplay.textContent = '-- s';
+      userRangeInput.value = '';
+      userRangeInput.disabled = true;
+      submitBtn.disabled = true;
+      submitBtn.style.display = 'inline-block';
+      nextBtn.hidden = true;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'quiz-feedback';
+      instructionEl.textContent = 'Click the target to transmit a new radar pulse!';
+      instructionEl.style.opacity = '1';
+      resetPlanePosition();
+    }
+
+    submitBtn.addEventListener('click', checkAnswer);
+    nextBtn.addEventListener('click', nextRound);
+  };
+</script>
