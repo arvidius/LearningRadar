@@ -204,7 +204,7 @@
       const aircraftHeight = aircraftWidth * (AIRCRAFT_NATIVE_H / AIRCRAFT_NATIVE_W);
 
       if (state === 'TRANSMITTING' || state === 'RETURNING' || state === 'ANSWERING') {
-        const pivotY = radarPos.y - radarHeight * 0.72;
+        const pivotY = radarPos.y - radarHeight * 0.5;
         const pivotX = radarPos.x + radarWidth * 0.18;
 
         ctx.strokeStyle = '#00a2be';
